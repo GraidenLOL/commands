@@ -210,4 +210,94 @@ netstat -an | grep port| cut -c45-63|awk -F':' '{print $1}'|sort| uniq -c
 who > see users
 ps -ef | grep pts/x		> kill -9 afk sessions
 
+	***** PERMISSIONS FOR FOLDERS AND FILES IN /FOLDER *****
+permissions in $FOLDER and its subfolders
+find ./ -type d -exec chown user.group {} \;
+find ./ -type d -exec chmod 2770 {} \;
+find ./ -type f -exec chown user.group {} \;
+find ./ -type f -exec chmod 640 {} \;
 
+	***** USER CREATION *****
+service sssd stop
+useradd -g main_group -G group2,group3 -s /bin/ksh user
+useradd -g main_group -G group2,group3 -s /bin/ksh user
+usermod -a -G group4 user					#append existing group to user
+usermod -G wheel,group2,group3 user
+gpasswd -a user group					#add user to group
+gpasswd -d user group					#delete user from group
+service sssd start
+
+	***** PASSWORD EXPIRATION DATE *****
+chage -l user				>info about user
+chage -d 2019-09-24 user		>date + max no of days to expire
+
+	***** FIX SLOW LOGGING IN *****
+vim /etc/ssh/sshd_config > USE DNS no
+service sshd restart
+vim /etc/hosts > ip + name of server
+netstat -plnt
+
+	***** FIND PASSWORD HASH *****
+echo -n password | md5sum				hash of password string with md5 encryption
+echo -n password | sha256sum				hash of password string with sha256 encryption
+
+	***** FIND TEXT IN FILES *****
+grep -rnw 'path' -e 'text'
+find ./ -type f | xargs grep "text"
+
+	***** OPERATING WITH DIRECTORIES *****
+Removing old directories:
+
+find /path/to/base/dir/* -type d -ctime +10 -exec rm -rf {} \;
+
+	find: the unix command for finding files / directories / links etc.
+	/path/to/base/dir: the directory to start your search in.
+	-type d: only find directories
+	-ctime +10: only consider the ones with modification time older than 10 days
+	-exec ... \;: for each such result found, do the following command in ...
+	rm -rf {}: recursively force remove the directory; the {} part is where the find result gets substituted into from the previous part.
+
+		@@@ VI @@@
+:%s/.$//					> replace ^M from DOS
+
+		@@@ MISC @@@
+1.) sudo vi
+2.) :!bash
+3.) and you can do whatever you need
+
+	***** Files newer (modified by time -mt) than first date, not older than last date *****
+find ./ -name "*text*" -type f -newermt "2021-11-22 00:00:00" \! -newermt "2021-11-23 04:19:00" | xargs ls -ltr
+find ./ -name "*text*" -type f -newermt "2020-06-15 00:00:00" \! -newermt "2020-06-16 04:25:00" | xargs du -s | awk '{SUM += $1} END { print "Total:", SUM/1024/1024, "GBs" }'
+find ./ -type f -newermt "2019-04-18 11:25:00" \! -newermt "2019-04-18 21:00:00"
+find ./ -type f -newermt "2019-11-28 08:00:00" \! -newermt "2019-11-29 08:00:00" | xargs ls -ltr | grep -v sem | grep -v XFB | less
+
+	***** SET PASSWORD FOR USER LIST *****
+for i in $(awk '{print $NF}' user.list); do id $i; done
+for i in $(awk '{print $NF}' user.list); do echo "password" | passwd $i --stdin; done
+
+	***** MODIFY USERS IN USER LIST *****
+awk -F'[=()]' '{print $3}' user.list
+for i in $(awk -F'[=()]' '{print $3}' user.list); do grep $i /etc/passwd; done
+for i in $(awk -F'[=()]' '{print $3}' user.list); do usermod -s /sbin/nologin $i; done
+for i in $(awk -F'[=()]' '{print $3}' user.list); do grep $i /etc/passwd; done
+
+	Find connections on port
+cat /log | awk -F'[:;]' '$1~/^Start_string1/{dt=$2;tm=$4;tm2=$5;tm3=$6} $1~/^Start_string2/&&$4~/^port$/{print dt,tm":"tm2":"tm3,$0}' |head -30
+	ProfileSVStats RespTime max > 2s
+awk -F'[;:]' '$1~/^Start_string1/{dt=$2;tm=$4;tm2=$5;tm3=$6} $1~/^Start_string2/&&$2~/^Start_string3/{if($24 > 2) print dt,tm":"tm2":"tm3,$0}' log | less
+	With sorting
+awk -F'[;:]' '$1~/^Start_string1/{dt=$2;tm=$4;tm2=$5;tm3=$6} $1~/^Start_string2/&&$2~/^Start_string3/{if($24 > 2) print dt,tm":"tm2":"tm3,$0" "$24}' log | sort -nr -k 4
+
+find . -name "file" | xargs grep "string" | awk '{print $1}' | awk -F':' '{print $2 "\t" $3}' | sort -u
+
+replace first x lines from a file
+sed -i.bak '1,xd' file*
+
+replace from line x to line y from a file
+sed -i.bak 'x,yd' file
+
+replace last x lines from a file
+sed -i -e :a -e '$d;N;2,xba' -e 'P;D' file
+
+find in file between timestamps
+sed -rne '/09:20:50/,/09:21:40/ p' file
