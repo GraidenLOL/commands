@@ -48,3 +48,21 @@ vim /etc/rsyslog.d/app.conf
 user.*                       -/var/log/user.log
 
 chmod 644 /etc/rsyslog.d/app.conf
+
+	***** ARCHIVE FILES LINUX *****
+zip file.zip file1 file2				- zip -r for directories
+ls -ltr /folder/ | grep "Feb 19\|Feb 20" | awk '{print $9}' > file_out.txt
+zip file.zip -@ < /tmp/file.txt
+echo|mail -s "subject" -a file "mail@address.com"
+
+export GZIP=-9
+tar cvzf file.tar.gz /path/to/directory			- for directories
+
+	***** EXTRACT SPECIFIC FOLDER FROM ARCHIVE *****
+tar -xvf file.tar ./specific_folder
+
+	***** FIND command *****
+find ./ -type f -mtime +30 | xargs ls -l | awk '{SUM += $5} END { print "Total:", SUM/1024/1024/1024, "GBs" }'
+find ./ -type f -mtime +30 | xargs du -s | awk '{SUM += $1} END { print "Total:", SUM/1024/1024, "GBs" }'
+find ./ -name "*log" -type f -mtime +30 | xargs tar --ignore-failed-read -cvf "monitor-${YEAR}${MONTH}${DAY}-${HOUR}${MIN}${SEC}.tar"
+find ./ -name "*log" -type f -mtime +30 | xargs rm -rf
