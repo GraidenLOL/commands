@@ -35,6 +35,15 @@ openssl s_client -connect ip:port -tls1
 openssl s_client -connect ip:port -tls1_2
 /bin/openssl s_client -debug -connect ip:port -state -quiet
 
+	***** CHECK SSL CONNECTIVITY *****
+openssl s_client -connect ip:port -showcerts -debug -tls1_2
+openssl s_client -connect ip:port -showcerts -debug -tls1
+
+	***** SSL CERTIFICATES KNOWLEDGE *****
+https://www.sslshopper.com/
+https://www.sslshopper.com/article-most-common-openssl-commands.html
+https://www.sslshopper.com/ssl-converter.html
+
 	***** REMOVE / MOVE ALL FILES BUT ONE IN CURRENT FOLDER - NO SPACES IN FILE NAME *****
 ls | grep -v file.txt | xargs rm -rf
 ls | grep -v target_directory | xargs mv -t target_directory
@@ -142,3 +151,50 @@ openssl s_client -connect port:ip -CAfile cert.pem -key privateKey.pem -cert pub
 openssl pkcs12 -export -out certificate.p12 -inkey privateKey.key -in certificate.crt -certfile CACert.crt
 	Convert a PKCS#12 (.pfx .p12) that contains certificate file and a private key to JKS
 keytool -importkeystore -deststorepass [changeit] -destkeypass [changeit] -destkeystore server.keystore -srckeystore server.p12 -srcstoretype PKCS12 -srcstorepass some-password -alias [some-alias]
+
+	***** CHECK .CRT FILES - CERTIFICATES *****
+Certificate expiration date check - execute commands on it to see the certificate info
+openssl x509 -in certificate.crt -text -noout
+openssl x509 -in certificate.pem -noout -text
+keytool -printcert -file certificate.crt -v
+
+OR
+openssl x509 -enddate -noout -in certificate.crt
+openssl x509 -enddate -noout -in certificate.pem
+openssl x509 -checkend 0 -in certificate.crt
+openssl x509 -checkend 220752000 -in /etc/pki/tls/certificate.pem (expiration check for 7 years in seconds)
+openssl verify -CAfile certificate.pem certificate.cer
+
+CER is an X.509 certificate in binary form, DER encoded.
+CRT is a binary X.509 certificate, encapsulated in text (base-64) encoding.
+openssl x509 -inform DER -in certificate.cer -out certificate.crt
+openssl x509 -inform PEM -in certificate.cer -out certificate.crt
+file certificate.cer certificate.crt
+
+keyStore.p12 & keyStore.jks generation
+/usr/bin/openssl pkcs12 -export -out keyStore.p12 -inkey privateKey.key -in certificate.crt/certificate.cer -certfile ca.crt
+/usr/bin/keytool -importkeystore -srckeystore keyStore.p12 -srcstoretype pkcs12 -destkeystore keyStore.jks -deststoretype jks
+
+certificate.pem generation
+openssl pkcs12 -in keyStore.p12 -out certificate.pem
+
+	***** Technical details for SSL mutual TLS connection *****
+https://blogs.msdn.microsoft.com/kaushal/2015/05/27/client-certificate-authentication-part-1/ 
+https://tools.ietf.org/html/rfc5246#section-7.4.4 
+
+	***** when there is new SSL session every thing begins with handshake, a part of it is:
+1.) client generates some random key and sends it to server
+2.) server encrypts by RSA the key and sends it back to client
+3.) client decrypts the encrypted key and if it has same value as the original value, it means he can trust server
+ 
+private key is for encryption
+public key is for decryption
+ 
+in mutual SSL authentication, which is extension of the process above, everything repeats also opposite way:
+1.) server generates some random key and sends it to client
+2.) client encrypts by RSA the key and sends it back to server
+3.) server decrypts the encrypted key and if it has same value as the original value, it means he can trust client 
+ 
+therefore both sides must have: 
+A side: private_key_A+public_key_B 
+B side: public_key_A+private_key_B
