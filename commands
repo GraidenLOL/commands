@@ -15,9 +15,36 @@ kill PID
 curl -v(vv) ip:port
 nc -zv ip port
 tracepath ip
+telnet ip port
+PowerShell - https://kb.netapp.com/app/answers/answer_view/a_id/1029866/~/how-to-test-port-connectivity-without-the-use-of-telnet-
+Test-NetConnection -ComputerName ip -Port port -InformationLevel Detailed
 
   #test incoming connection
 </dev/tcp/ip:port && echo port OPEN || echo port CLOSED
   #test outgoing connection
 >/dev/tcp/ip:port && echo port OPEN || echo port CLOSED
+or simply echo $0
 
+	#Create an openssl server
+openssl s_server -accept port -cert server.crt -key server.key -CAfile ca.crt -verify 2 -verify_return_error -state
+  #Create an openssl server with no old TLS
+openssl s_server -accept port -cert /server.cer -key /server.key -CAfile /etc/pki/tls/cert.pem -verify 2 -no_tls1 -no_ssl3 -no_ssl2 -state -debug
+
+	Check connectivity from Linux
+openssl s_client -connect ip:port -tls1
+openssl s_client -connect ip:port -tls1_2
+/bin/openssl s_client -debug -connect ip:port -state -quiet
+
+	***** REMOVE / MOVE ALL FILES BUT ONE IN CURRENT FOLDER - NO SPACES IN FILE NAME *****
+ls | grep -v file.txt | xargs rm -rf
+ls | grep -v target_directory | xargs mv -t target_directory
+OR
+mv !(target_directory) target_directory
+
+	***** LOGROTATE FILES *****
+/etc/rsyslog.d/app.conf
+vim /etc/rsyslog.d/app.conf
+# Save user messages also to user.log
+user.*                       -/var/log/user.log
+
+chmod 644 /etc/rsyslog.d/app.conf
