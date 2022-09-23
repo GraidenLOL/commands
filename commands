@@ -205,3 +205,9 @@ for i in {15000..15500}; do </dev/tcp/0.0.0.0/${i} && echo ${i} is OPEN; done 2>
 netstat -tpln | grep :18
 
 netstat -an | grep port| cut -c45-63|awk -F':' '{print $1}'|sort| uniq -c
+
+	***** KILL AFK/ZOMBIE SESSIONS *****
+who > see users
+ps -ef | grep pts/x		> kill -9 afk sessions
+
+
