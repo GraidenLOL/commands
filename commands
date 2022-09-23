@@ -1,16 +1,23 @@
+  #archive commands
 gtar -xvf /gz_file.gz /location ./folder_to_extract
 gtar -cp -C /folder .| pigz -9 -p 4 -c - >/file_to_archive.gz
 
-clean var folder
+  #clean var folder
 yum clean all
 du -sh /var/run/*
 logrotate -v /etc/logrotate.d/syslog
 
-remove files from deleted processes
+  #remove files from deleted processes
 lsof +L1 | grep '(deleted)' | grep tmp
 kill PID
 
+  #test connectivity commands
 curl -v(vv) ip:port
 nc -zv ip port
 tracepath ip
+
+  #test incoming connection
+</dev/tcp/ip:port && echo port OPEN || echo port CLOSED
+  #test outgoing connection
+>/dev/tcp/ip:port && echo port OPEN || echo port CLOSED
 
