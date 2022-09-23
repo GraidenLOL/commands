@@ -198,3 +198,10 @@ in mutual SSL authentication, which is extension of the process above, everythin
 therefore both sides must have: 
 A side: private_key_A+public_key_B 
 B side: public_key_A+private_key_B
+
+	***** CHECK OPEN PORTS && CONNECTIONS *****
+for i in {1..2000}; do </dev/tcp/0.0.0.0/${i} && echo ${i} is OPEN; done 2>/dev/null
+for i in {15000..15500}; do </dev/tcp/0.0.0.0/${i} && echo ${i} is OPEN; done 2>/dev/null
+netstat -tpln | grep :18
+
+netstat -an | grep port| cut -c45-63|awk -F':' '{print $1}'|sort| uniq -c
