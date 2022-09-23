@@ -1,36 +1,36 @@
-  #archive commands
+	***** ARCHIVE COMMANDS *****
 gtar -xvf /gz_file.gz /location ./folder_to_extract
 gtar -cp -C /folder .| pigz -9 -p 4 -c - >/file_to_archive.gz
 
-  #clean var folder
+	***** CLEAN VAR FOLDER *****
 yum clean all
 du -sh /var/run/*
 logrotate -v /etc/logrotate.d/syslog
 
-  #remove files from deleted processes
+	***** REMOVE FILES FROM DELETED PROCESSES *****
 lsof +L1 | grep '(deleted)' | grep tmp
 kill PID
 
-  #test connectivity commands
+	***** TEST CONNECTIVITY COMMANDS *****
 curl -v(vv) ip:port
 nc -zv ip port
 tracepath ip
 telnet ip port
-PowerShell - https://kb.netapp.com/app/answers/answer_view/a_id/1029866/~/how-to-test-port-connectivity-without-the-use-of-telnet-
+	PowerShell - https://kb.netapp.com/app/answers/answer_view/a_id/1029866/~/how-to-test-port-connectivity-without-the-use-of-telnet-
 Test-NetConnection -ComputerName ip -Port port -InformationLevel Detailed
 
-  #test incoming connection
+	***** TEST INCOMING CONNECTION *****
 </dev/tcp/ip:port && echo port OPEN || echo port CLOSED
-  #test outgoing connection
+	***** TEST OUTGOING CONNECTION *****
 >/dev/tcp/ip:port && echo port OPEN || echo port CLOSED
 or simply echo $0
 
-	#Create an openssl server
+	***** CREATE AN OPENSSL SERVER *****
 openssl s_server -accept port -cert server.crt -key server.key -CAfile ca.crt -verify 2 -verify_return_error -state
-  #Create an openssl server with no old TLS
+	***** CREATE AN OPENSSL SERVER WITH NO OLD TLS *****
 openssl s_server -accept port -cert /server.cer -key /server.key -CAfile /etc/pki/tls/cert.pem -verify 2 -no_tls1 -no_ssl3 -no_ssl2 -state -debug
 
-	Check connectivity from Linux
+	***** CHECK CONNECTIVITY FROM LINUX *****
 openssl s_client -connect ip:port -tls1
 openssl s_client -connect ip:port -tls1_2
 /bin/openssl s_client -debug -connect ip:port -state -quiet
@@ -66,3 +66,79 @@ find ./ -type f -mtime +30 | xargs ls -l | awk '{SUM += $5} END { print "Total:"
 find ./ -type f -mtime +30 | xargs du -s | awk '{SUM += $1} END { print "Total:", SUM/1024/1024, "GBs" }'
 find ./ -name "*log" -type f -mtime +30 | xargs tar --ignore-failed-read -cvf "monitor-${YEAR}${MONTH}${DAY}-${HOUR}${MIN}${SEC}.tar"
 find ./ -name "*log" -type f -mtime +30 | xargs rm -rf
+
+	***** TOP 10 PROCESSES USING SWAP MEMORY *****
+	without percent
+find /proc -maxdepth 2 -path "/proc/[0-9]*/status" -readable -exec awk -v FS=":" '{process[$1]=$2;sub(/^[ \t]+/,"",process[$1]);} END {if(process["VmSwap"] && process["VmSwap"] != "0 kB") printf "%10s %-30s %20s\n",process["Pid"],process["Name"],process["VmSwap"]}' '{}' \; | awk '{print $(NF-1),$0}' | sort -hr | head | cut -d " " -f2-
+	percent
+find /proc -maxdepth 2 -path "/proc/[0-9]*/status" -readable -exec awk -v FS=":" -v TOTSWP="$(cat /proc/meminfo | sed  -n -e "s/^SwapTotal:[ ]*\([0-9]*\) kB/\1/p")" '{process[$1]=$2;sub(/^[ \t]+/,"",process[$1]);} END {if(process["VmSwap"] && process["VmSwap"] != "0 kB") {used_swap=process["VmSwap"];sub(/[ a-zA-Z]+/,"",used_swap);percent=(used_swap/TOTSWP*100); printf "%10s %-30s %20s %6.2f%\n",process["Pid"],process["Name"],process["VmSwap"],percent} }' '{}' \;  | awk '{print $(NF-2),$0}' | sort -hr | head | cut -d " " -f2-
+
+	***** READ BINARY FILES *****
+od -cx file | less
+
+	***** General OpenSSL Commands *****
+	Generate a new private key and Certificate Signing Request
+openssl req -out CSR.csr -new -newkey rsa:2048 -nodes -keyout privateKey.key
+	Generate a self-signed certificate (see How to Create and Install an Apache Self Signed Certificate for more info)
+openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -keyout privateKey.key -out certificate.crt
+	Generate a certificate signing request (CSR) for an existing private key
+openssl req -out CSR.csr -key privateKey.key -new
+	Generate a certificate signing request based on an existing certificate
+openssl x509 -x509toreq -in certificate.crt -out CSR.csr -signkey privateKey.key
+	Remove a passphrase from a private key
+openssl rsa -in privateKey.key -out newPrivateKey.key
+	Extract the public key from the private key
+openssl rsa -in private.key -pubout -out public.key
+
+		Checking Using OpenSSL
+	Check Certificate Signing Request (CSR)
+openssl req -text -noout -verify -in CSR.csr
+	Check private key
+openssl rsa -in privateKey.key -check
+	Check certificate (PEM)
+openssl x509 -in certificate.crt -text -noout
+	Check certificate (DER)
+openssl x509 -in certificate.crt -text -noout -inform DER
+	Check a PKCS#12 file (.pfx or .p12)
+openssl pkcs12 -info -in keyStore.p12
+
+	Check Certificate and private key match
+	https://www.ibm.com/support/pages/how-verify-if-private-key-matches-certificate
+openssl x509 -noout -modulus -in certificate.crt | openssl md5
+openssl rsa -noout -modulus -in privateKey.txt | openssl md5
+	where:
+certificate.crt is your certificate
+privateKey.txt is your private key
+
+	***** keyStore.p12 & keyStore.jks generation *****
+openssl pkcs12 -export -out keyStore.p12 -inkey privateKey.key -in certificate.cer -name name_env (and -certfile /etc/pki/tls/cert.pem if the whole CA chain is needed)
+TO BE TESTED: openssl pkcs12 -export -in certificate.cer -inkey privateKey.key -out keyStore.p12 -name name_env -chain
+
+keytool -importkeystore -srckeystore keyStore.p12 -srcstoretype pkcs12 -destkeystore keyStore.jks -deststoretype JKS
+	OR
+keytool -importkeystore -deststorepass password -destkeypass password -destkeystore keyStore.jks -deststoretype JKS -srckeystore keyStore.p12 -srcstoretype PKCS12 -srcstorepass password -alias name_env
+
+openssl pkcs12 -info -in keyStore.p12
+keytool -list -v -keystore keyStore.jks
+
+		Debugging Using OpenSSL - get hash of public Key
+openssl x509 -noout -modulus -in certificate.crt | openssl md5
+openssl rsa -noout -modulus -in privateKey.key | openssl md5
+openssl req -noout -modulus -in CSR.csr | openssl md5
+
+		Converting Using OpenSSL
+	Convert a DER file (.crt .cer .der) to PEM
+openssl x509 -inform der -in certificate.cer -out certificate.pem
+	Convert a PEM file to DER
+openssl x509 -outform der -in certificate.pem -out certificate.der
+	Convert a PKCS#12 file (.pfx .p12) containing a private key and certificates to PEM
+openssl pkcs12 -in keyStore.p12 -nodes -out privateKey_certs.pem
+	You can add -nocerts to only output the private key or add -clcerts -nokeys to only output the certificates.
+openssl pkcs12 -in keyStore.p12 -nocerts -out privateKey.pem
+openssl pkcs12 -in keyStore.p12 -clcerts -nokeys -out publicCert.pem
+	TO DEBUG
+openssl s_client -connect port:ip -CAfile cert.pem -key privateKey.pem -cert publicCert.pem -state -debug
+	Convert a PEM certificate file and a private key to PKCS#12 (.pfx .p12)
+openssl pkcs12 -export -out certificate.p12 -inkey privateKey.key -in certificate.crt -certfile CACert.crt
+	Convert a PKCS#12 (.pfx .p12) that contains certificate file and a private key to JKS
+keytool -importkeystore -deststorepass [changeit] -destkeypass [changeit] -destkeystore server.keystore -srckeystore server.p12 -srcstoretype PKCS12 -srcstorepass some-password -alias [some-alias]
