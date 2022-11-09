@@ -302,3 +302,7 @@ sed -i -e :a -e '$d;N;2,xba' -e 'P;D' file
 
 find in file between timestamps
 sed -rne '/09:20:50/,/09:21:40/ p' file
+
+sudo vi
+:!bash
+commands
