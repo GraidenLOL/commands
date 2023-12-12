@@ -306,3 +306,5 @@ sed -rne '/09:20:50/,/09:21:40/ p' file
 sudo vi
 :!bash
 commands
+
+netsh wlan show profile name="Wifi" key=clear
