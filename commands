@@ -26,11 +26,6 @@ Test-NetConnection -ComputerName ip -Port port -InformationLevel Detailed
 >/dev/tcp/ip:port && echo port OPEN || echo port CLOSED
 or simply echo $0
 
-	***** CREATE AN OPENSSL SERVER *****
-openssl s_server -accept port -cert server.crt -key server.key -CAfile ca.crt -verify 2 -verify_return_error -state
-	***** CREATE AN OPENSSL SERVER WITH NO OLD TLS *****
-openssl s_server -accept port -cert /server.cer -key /server.key -CAfile /etc/pki/tls/cert.pem -verify 2 -no_tls1 -no_ssl3 -no_ssl2 -state -debug
-
 	***** CHECK CONNECTIVITY FROM LINUX *****
 openssl s_client -connect ip:port -tls1
 openssl s_client -connect ip:port -tls1_2
@@ -39,11 +34,6 @@ openssl s_client -connect ip:port -tls1_2
 	***** CHECK SSL CONNECTIVITY *****
 openssl s_client -connect ip:port -showcerts -debug -tls1_2
 openssl s_client -connect ip:port -showcerts -debug -tls1
-
-	***** SSL CERTIFICATES KNOWLEDGE *****
-https://www.sslshopper.com/
-https://www.sslshopper.com/article-most-common-openssl-commands.html
-https://www.sslshopper.com/ssl-converter.html
 
 	***** REMOVE / MOVE ALL FILES BUT ONE IN CURRENT FOLDER - NO SPACES IN FILE NAME *****
 ls | grep -v file.txt | xargs rm -rf
