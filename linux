@@ -17,8 +17,6 @@ nc -zv ip port
 nc -l hostname port (for listening server)
 tracepath ip
 telnet ip port
-	PowerShell - https://kb.netapp.com/app/answers/answer_view/a_id/1029866/~/how-to-test-port-connectivity-without-the-use-of-telnet-
-Test-NetConnection -ComputerName ip -Port port -InformationLevel Detailed
 
 	***** TEST INCOMING CONNECTION *****
 </dev/tcp/ip:port && echo port OPEN || echo port CLOSED
