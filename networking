@@ -1,1 +1,38 @@
+  LINUX
+***** TEST CONNECTIVITY COMMANDS *****
+curl -v(vv) ip:port
+nc -zv ip port
+nc -l hostname port (for listening server)
+tracepath ip
+telnet ip port
 
+	***** TEST INCOMING CONNECTION *****
+</dev/tcp/ip:port && echo port OPEN || echo port CLOSED
+	***** TEST OUTGOING CONNECTION *****
+>/dev/tcp/ip:port && echo port OPEN || echo port CLOSED
+or simply echo $0
+
+	***** CHECK CONNECTIVITY FROM LINUX *****
+openssl s_client -connect ip:port -tls1
+openssl s_client -connect ip:port -tls1_2
+/bin/openssl s_client -debug -connect ip:port -state -quiet
+
+	***** CHECK OPEN PORTS && CONNECTIONS *****
+for i in {1..2000}; do </dev/tcp/0.0.0.0/${i} && echo ${i} is OPEN; done 2>/dev/null
+for i in {15000..15500}; do </dev/tcp/0.0.0.0/${i} && echo ${i} is OPEN; done 2>/dev/null
+netstat -tpln | grep :18
+netstat -an | grep port| cut -c45-63|awk -F':' '{print $1}'|sort| uniq -c
+
+
+netsh wlan show profile name="Wifi" key=clear
+
+
+
+
+  POWERSHELL
+
+***** TEST CONNECTIVITY COMMANDS *****
+tracepath ip
+telnet ip port
+	PowerShell - https://kb.netapp.com/app/answers/answer_view/a_id/1029866/~/how-to-test-port-connectivity-without-the-use-of-telnet-
+Test-NetConnection -ComputerName ip -Port port -InformationLevel Detailed
