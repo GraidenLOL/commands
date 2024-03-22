@@ -1,1 +1,10 @@
+	***** SSL CERTIFICATES KNOWLEDGE *****
+https://www.sslshopper.com/
+https://www.sslshopper.com/article-most-common-openssl-commands.html
+https://www.sslshopper.com/ssl-converter.html
+
+	***** CREATE AN OPENSSL SERVER *****
+openssl s_server -accept port -cert server.crt -key server.key -CAfile ca.crt -verify 2 -verify_return_error -state
+	***** CREATE AN OPENSSL SERVER WITH NO OLD TLS *****
+openssl s_server -accept port -cert /server.cer -key /server.key -CAfile /etc/pki/tls/cert.pem -verify 2 -no_tls1 -no_ssl3 -no_ssl2 -state -debug
 
