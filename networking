@@ -36,3 +36,4 @@ tracepath ip
 telnet ip port
 	PowerShell - https://kb.netapp.com/app/answers/answer_view/a_id/1029866/~/how-to-test-port-connectivity-without-the-use-of-telnet-
 Test-NetConnection -ComputerName ip -Port port -InformationLevel Detailed
+tnc ip -port port
